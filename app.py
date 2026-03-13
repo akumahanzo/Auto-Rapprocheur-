@@ -44,11 +44,18 @@ elif menu == "Login":
     st.header("Connexion")
     username = st.text_input("Nom utilisateur")
     password = st.text_input("Mot de passe", type="password")
-    if st.button("Login"):
-        if login(username, password):
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Login"):
+            if login(username, password):
+                st.session_state["auth"] = True
+            else:
+                st.error("Login incorrect.")
+    with col2:
+        if st.button("Entrer directement"):
             st.session_state["auth"] = True
-        else:
-            st.error("Login incorrect.")
+            st.info("Accès direct activé (mode admin/test).")
 
 # Si connecté, afficher l'application de rapprochement
 if st.session_state["auth"]:
