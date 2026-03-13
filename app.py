@@ -6,14 +6,17 @@ st.set_page_config(page_title="ISS Solutions")
 
 st.title("ISS Solutions")
 
+# Initialisation de l'état d'authentification
 if "auth" not in st.session_state:
     st.session_state["auth"] = False
 
+# Menu sidebar
 menu = st.sidebar.selectbox(
     "Menu",
     ["Login", "Créer demande compte", "Activer compte"]
 )
 
+# Création de demande de compte
 if menu == "Créer demande compte":
     st.header("Demande de compte")
     nom = st.text_input("Nom complet")
@@ -24,6 +27,7 @@ if menu == "Créer demande compte":
         send_request_email(email, organisation, nom, solution)
         st.success("Demande envoyée aux administrateurs.")
 
+# Activation du compte
 elif menu == "Activer compte":
     st.header("Activation")
     username = st.text_input("Nom utilisateur")
@@ -35,6 +39,7 @@ elif menu == "Activer compte":
         else:
             st.error("Clé invalide ou déjà utilisée.")
 
+# Login
 elif menu == "Login":
     st.header("Connexion")
     username = st.text_input("Nom utilisateur")
@@ -45,6 +50,7 @@ elif menu == "Login":
         else:
             st.error("Login incorrect.")
 
+# Si connecté, afficher l'application de rapprochement
 if st.session_state["auth"]:
     st.sidebar.success("Connecté")
     app_rapprochement()
