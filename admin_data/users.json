@@ -1,10 +1,7 @@
 {
-  "users": [
-    {
-      "username": "admin",
-      "password_hash": "admin",  
-      "activation_key": "ISS-2026-T2S-SB-U15",
-      "activated": false
-    }
-  ]
+  "admin": {
+    "password": "admin",
+    "key": "ISS-2026-T2S-SB-U15",
+    "active": true
+  }
 }
