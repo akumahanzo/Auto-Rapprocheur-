@@ -4,7 +4,7 @@
       "username": "SBelgaid",
       "password_hash": "Sbel1234",  
       "activation_key": "ISS-2026-T2S-SB-U15",
-      "activated": false
+      "activated": true
     }
   ]
 }
