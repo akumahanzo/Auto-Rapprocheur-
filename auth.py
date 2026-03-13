@@ -1,85 +1,99 @@
+# auth.py
 import json
 import hashlib
 import smtplib
 from email.mime.text import MIMEText
-from pathlib import Path
+from email.mime.multipart import MIMEMultipart
 
-BASE = Path("admin_data")
+# Fichier admin pour stocker les adresses qui recevront les demandes
+ADMIN_FILE = "admin_data.json"  # contient une liste d'emails admins
+USERS_FILE = "users_data.json"  # stockage des comptes activés
 
-users_file = BASE / "users.json"
-keys_file = BASE / "activation_keys.json"
-config_file = BASE / "config.json"
+# ----------------------
+# Gestion des emails
+# ----------------------
+EMAIL_USER = "mail_essai@mail.com"  # Email pour envoyer les demandes
+EMAIL_PASS = "mdp123"                # Mot de passe d'exemple
+
+def send_request_email(user_email, organisation, nom, solution):
+    """Envoie un email de demande de création de compte aux admins."""
+    # Charger les adresses admins depuis le fichier JSON
+    try:
+        with open(ADMIN_FILE, "r") as f:
+            admins = json.load(f)
+    except FileNotFoundError:
+        admins = ["mo.cherdoudi@gmail.com"]  # fallback par défaut
+
+    subject = "Nouvelle demande de compte ISS"
+    body = f"""
+Bonjour Admin,
+
+Un utilisateur souhaite créer un compte ISS :
+
+Nom complet : {nom}
+Email : {user_email}
+Organisation : {organisation}
+Solution / Application : {solution}
+
+Veuillez traiter cette demande et générer un compte.
+"""
+
+    msg = MIMEMultipart()
+    msg["From"] = EMAIL_USER
+    msg["To"] = ", ".join(admins)
+    msg["Subject"] = subject
+    msg.attach(MIMEText(body, "plain"))
+
+    try:
+        server = smtplib.SMTP("smtp.gmail.com", 587)
+        server.starttls()
+        server.login(EMAIL_USER, EMAIL_PASS)
+        server.sendmail(EMAIL_USER, admins, msg.as_string())
+        server.quit()
+        print("Email envoyé aux admins :", admins)
+    except Exception as e:
+        print("Erreur lors de l'envoi de l'email :", e)
 
 
+# ----------------------
+# Gestion des comptes
+# ----------------------
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
 
-def load_json(path):
-    if not path.exists():
-        return {}
-    with open(path, "r") as f:
-        return json.load(f)
-
-
-def save_json(path, data):
-    with open(path, "w") as f:
-        json.dump(data, f, indent=4)
-
-
-def send_request_email(email, organisation, nom, solution):
-    """Envoie un email aux admins avec la demande de création de compte"""
-    config = load_json(config_file)
-    admins = config["admin_emails"]
-
-    body = f"""
-Nouvelle demande de compte ISS
-
-Nom: {nom}
-Email: {email}
-Organisation: {organisation}
-Solution: {solution}
-"""
-
-    msg = MIMEText(body)
-    msg["Subject"] = "Demande de compte ISS"
-    msg["From"] = email
-
-    # ⚠️ Configurer avec ton compte Gmail et App Password
-    server = smtplib.SMTP("smtp.gmail.com", 587)
-    server.starttls()
-    server.login("ton_email@gmail.com", "app_password")  # à remplacer
-
-    for admin in admins:
-        msg["To"] = admin
-        server.sendmail(email, admin, msg.as_string())
-
-    server.quit()
-
-
 def activate_account(username, password, key):
-    """Active un compte si la clé d'activation est valide"""
-    users = load_json(users_file)
-    keys = load_json(keys_file)
+    """Active un compte si la clé correspond à celle générée par l'admin"""
+    try:
+        with open(USERS_FILE, "r") as f:
+            users = json.load(f)
+    except FileNotFoundError:
+        users = {}
 
-    for k in keys.get("keys", []):
-        if k["username"] == username and k["activation_key"] == key and not k["used"]:
-            users.setdefault("users", []).append({
-                "username": username,
-                "password": hash_password(password)
-            })
-            k["used"] = True
-            save_json(users_file, users)
-            save_json(keys_file, keys)
-            return True
+    if username in users and users[username].get("active", False):
+        return False  # déjà activé
+
+    # Exemple simple : clé d'activation fixe pour test
+    if key == "CLE12345":
+        users[username] = {
+            "password": hash_password(password),
+            "key": key,
+            "active": True
+        }
+        with open(USERS_FILE, "w") as f:
+            json.dump(users, f, indent=4)
+        return True
     return False
 
 
 def login(username, password):
-    """Vérifie si le login est correct"""
-    users = load_json(users_file)
-    hashed = hash_password(password)
-    for u in users.get("users", []):
-        if u["username"] == username and u["password"] == hashed:
-            return True
+    """Vérifie login / mot de passe"""
+    try:
+        with open(USERS_FILE, "r") as f:
+            users = json.load(f)
+    except FileNotFoundError:
+        return False
+
+    if username in users and users[username].get("active", False):
+        return hash_password(password) == users[username]["password"]
     return False
