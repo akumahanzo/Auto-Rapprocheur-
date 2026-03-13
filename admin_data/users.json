@@ -1,8 +1,8 @@
 {
   "users": [
     {
-      "username": "SBelgaid",
-      "password_hash": "Sbel1234",  
+      "username": "admin",
+      "password_hash": "admin",  
       "activation_key": "ISS-2026-T2S-SB-U15",
       "activated": true
     }
