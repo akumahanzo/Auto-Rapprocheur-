@@ -1,6 +1,5 @@
 # auth.py
 import json
-import hashlib
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -58,9 +57,6 @@ Veuillez traiter cette demande et générer un compte.
 # ----------------------
 # Gestion des comptes
 # ----------------------
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
-
 
 def activate_account(username, password, key):
     """Active un compte si la clé correspond à celle générée par l'admin"""
@@ -76,7 +72,7 @@ def activate_account(username, password, key):
     # Exemple simple : clé d'activation fixe pour test
     if key == "CLE12345":
         users[username] = {
-            "password": hash_password(password),
+            "password": password,  # mot de passe en clair
             "key": key,
             "active": True
         }
@@ -95,5 +91,5 @@ def login(username, password):
         return False
 
     if username in users and users[username].get("active", False):
-        return hash_password(password) == users[username]["password"]
+        return password == users[username]["password"]
     return False
