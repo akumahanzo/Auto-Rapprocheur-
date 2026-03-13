@@ -1,45 +1,50 @@
 import streamlit as st
-from ab import traiter_rapprochement
+from auth import login, activate_account, send_request_email
+from rapprochement import app_rapprochement
 
-st.set_page_config(page_title="Assistant Lettrage", layout="centered")
+st.set_page_config(page_title="ISS Solutions")
 
-st.title("Assistant Lettrage")
+st.title("ISS Solutions")
 
-st.write("Importer les deux fichiers Excel pour lancer le rapprochement.")
+if "auth" not in st.session_state:
+    st.session_state["auth"] = False
 
-releve_file = st.file_uploader(
-    "Relevé fournisseur (contient la colonne Total TTC)",
-    type=["xlsx"]
+menu = st.sidebar.selectbox(
+    "Menu",
+    ["Login", "Créer demande compte", "Activer compte"]
 )
 
-fae_file = st.file_uploader(
-    "Fichier FAE Business Central (contient la colonne Montant TTC)",
-    type=["xlsx"]
-)
+if menu == "Créer demande compte":
+    st.header("Demande de compte")
+    nom = st.text_input("Nom complet")
+    email = st.text_input("Email")
+    organisation = st.text_input("Organisation")
+    solution = st.text_input("Solution / application")
+    if st.button("Envoyer demande"):
+        send_request_email(email, organisation, nom, solution)
+        st.success("Demande envoyée aux administrateurs.")
 
-if st.button("Lancer le rapprochement"):
+elif menu == "Activer compte":
+    st.header("Activation")
+    username = st.text_input("Nom utilisateur")
+    password = st.text_input("Mot de passe", type="password")
+    key = st.text_input("Clé activation")
+    if st.button("Activer"):
+        if activate_account(username, password, key):
+            st.success("Compte activé ! Vous pouvez maintenant vous connecter.")
+        else:
+            st.error("Clé invalide ou déjà utilisée.")
 
-    if releve_file is None:
-        st.error("Veuillez importer le relevé fournisseur.")
-        st.stop()
+elif menu == "Login":
+    st.header("Connexion")
+    username = st.text_input("Nom utilisateur")
+    password = st.text_input("Mot de passe", type="password")
+    if st.button("Login"):
+        if login(username, password):
+            st.session_state["auth"] = True
+        else:
+            st.error("Login incorrect.")
 
-    if fae_file is None:
-        st.error("Veuillez importer le fichier FAE.")
-        st.stop()
-
-    try:
-
-        with st.spinner("Traitement en cours..."):
-            rapport = traiter_rapprochement(releve_file, fae_file)
-
-        st.success("Rapprochement terminé.")
-
-        st.download_button(
-            label="Télécharger le rapport Excel",
-            data=rapport,
-            file_name="rapport_prelettrage.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
-
-    except Exception as e:
-        st.error(str(e))
+if st.session_state["auth"]:
+    st.sidebar.success("Connecté")
+    app_rapprochement()
