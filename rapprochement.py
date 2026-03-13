@@ -1,8 +1,9 @@
 # rapprochement.py
 import streamlit as st
-from ab import traiter_rapprochement
 
 def app_rapprochement():
+    import ab  # import local pour éviter le circular import
+
     st.set_page_config(page_title="Assistant Lettrage", layout="centered")
 
     st.title("Assistant Lettrage")
@@ -28,7 +29,8 @@ def app_rapprochement():
 
         try:
             with st.spinner("Traitement en cours..."):
-                rapport = traiter_rapprochement(releve_file, fae_file)
+                # Appel de la fonction traiter_rapprochement du module ab
+                rapport = ab.traiter_rapprochement(releve_file, fae_file)
 
             st.success("Rapprochement terminé.")
 
