@@ -1,7 +1,7 @@
 📘 Excel Reconciler - Guide Administrateur pour la Gestion des Comptes
 1. Introduction
 
-Ce document explique comment fonctionne le système de login et d’activation des comptes utilisateurs pour l’application Excel Reconciler (ISS - IngeSoft Solution).
+Ce document explique comment fonctionne le système de login et d’activation des comptes utilisateurs pour l’application 
 
 Le système permet :
 
